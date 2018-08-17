@@ -679,7 +679,9 @@ void JackAudioDriver::setTrackOutput( int n, Instrument * instr, InstrumentCompo
 
 	if ( track_port_count <= n ) { // need to create more ports
 		for ( int m = track_port_count; m <= n; m++ ) {
-			chName = QString( "Track_%1_" ).arg( m + 1 );
+			DrumkitComponent* pDrumkitComponent = song->get_component( compo->get_drumkit_componentID() );
+			chName = QString( "Track_%1_%2_%3_" ).arg( n + 1 ).arg( instr->get_name() ).arg( pDrumkitComponent->get_name() );
+
 			track_output_ports_L[m] = jack_port_register ( m_pClient, ( chName + "L" ).toLocal8Bit(),
 														   JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0 );
 
@@ -693,17 +695,6 @@ void JackAudioDriver::setTrackOutput( int n, Instrument * instr, InstrumentCompo
 		track_port_count = n + 1;
 	}
 
-	// Now we're sure there is an n'th port, rename it.
-	DrumkitComponent* pDrumkitComponent = song->get_component( compo->get_drumkit_componentID() );
-	chName = QString( "Track_%1_%2_%3_" ).arg( n + 1 ).arg( instr->get_name() ).arg( pDrumkitComponent->get_name() );
-
-#ifdef HAVE_JACK_PORT_RENAME
-	jack_port_rename( m_pClient, track_output_ports_L[n], ( chName + "L" ).toLocal8Bit() );
-	jack_port_rename( m_pClient, track_output_ports_R[n], ( chName + "R" ).toLocal8Bit() );
-#else
-	jack_port_set_name( track_output_ports_L[n], ( chName + "L" ).toLocal8Bit() );
-	jack_port_set_name( track_output_ports_R[n], ( chName + "R" ).toLocal8Bit() );
-#endif
 }
 
 void JackAudioDriver::play()
